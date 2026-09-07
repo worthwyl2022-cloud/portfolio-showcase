@@ -1,0 +1,27 @@
+name: Verify portfolio surface
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require evidence and security controls
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s README.md
+          test -s SECURITY.md
+          test -s LICENSE
+          if grep -RInE 'sk-[A-Za-z0-9]|pplx-[A-Za-z0-9]|BEGIN (RSA|OPENSSH|EC) PRIVATE KEY' . --exclude-dir=.git; then
+            echo 'Potential credential material detected' >&2
+            exit 1
+          fi
